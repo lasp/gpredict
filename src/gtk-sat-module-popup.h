@@ -4,5 +4,7 @@
 void            gtk_sat_module_popup(GtkSatModule * module);
 gboolean        module_window_config_cb(GtkWidget *, GdkEventConfigure *,
                                         gpointer);
+void            gtk_sat_module_popup_rig_ctrl(GtkSatModule * module);
+void            gtk_sat_module_popup_rot_ctrl(GtkSatModule * module);
 
 #endif
