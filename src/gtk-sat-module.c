@@ -992,6 +992,22 @@ static void gtk_sat_module_read_cfg_data(GtkSatModule * module,
 }
 
 /**
+ * Create a gtk_rig_ctrl and gtk-rot-ctrl for the input module and engage controls for 
+ * an upcoming pass.
+ *
+ * @param module Pointer to the module being initialized.
+ *
+ */
+static void gtk_sat_module_pass_setup(GtkSatModule * module)
+{
+    /* prepare radio control for the next pass */
+    gtk_sat_module_popup_rig_ctrl(module);
+    
+    /* prepare rotator control for the next pass */
+    gtk_sat_module_popup_rot_ctrl(module);
+}
+
+/**
  * Create a new GtkSatModule widget.
  *
  * @param cfgfile The name of the configuration file (.mod)
@@ -1096,6 +1112,9 @@ GtkWidget *gtk_sat_module_new(const gchar * cfgfile)
     /* start timeout */
     module->timerid = g_timeout_add(module->timeout, gtk_sat_module_timeout_cb,
                                     module);
+                                    
+    /* instantiate radio and rotator controls and prepare for pass */
+    gtk_sat_module_pass_setup(module);
 
     return GTK_WIDGET(module);
 }
