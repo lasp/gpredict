@@ -64,6 +64,10 @@ struct _GtkSatSelectorClass {
 GType           gtk_sat_selector_get_type(void);
 GtkWidget      *gtk_sat_selector_new(guint flags);
 guint32         gtk_sat_selector_get_flags(GtkSatSelector * selector);
+void            gtk_sat_selector_set_selected_with_catnum(GtkSatSelector * selector, 
+                                              gint catnum);
+void            gtk_sat_selector_get_selected_with_catnum(GtkSatSelector * selector, 
+                                              gint * catnum);
 void            gtk_sat_selector_get_selected(GtkSatSelector * selector,
                                               gint * catnum, gchar ** satname,
                                               gdouble * epoch);

@@ -817,6 +817,76 @@ static void create_and_fill_models(GtkSatSelector * selector)
 }
 
 /**
+ * Set the selected satellite. 
+ *
+ * @param selector Pointer to the GtkSatSelector widget.
+ * @param catnum   The catnum of the chosen satellite. 
+ */
+void gtk_sat_selector_set_selected_with_catnum(GtkSatSelector * selector, 
+                                               gint catnum)
+{
+    GtkTreeSelection    *selection; 
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    gint                 i, n, nth_catnum;
+    
+    g_return_if_fail(selector != 0 && IS_GTK_SAT_SELECTOR(selector));
+    
+    /* get the selection */
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selector->tree));
+
+    /* get the tree model that contains all satellites */
+    model = gtk_tree_view_get_model(gtk_tree_selection_get_tree_view(selection));
+
+    /* loop over each satellite in the model */
+    n = gtk_tree_model_iter_n_children(model, NULL);
+    for (i = 0; i < n; i++) {
+        if (G_LIKELY(gtk_tree_model_iter_nth_child(model, &iter, NULL, i))) {
+            gtk_tree_model_get(model, &iter,
+                               GTK_SAT_SELECTOR_COL_CATNUM, &nth_catnum, -1);
+                               
+            /* select the desired satellite */
+            if (nth_catnum == catnum) {
+                gtk_tree_selection_select_iter(selection, &iter);
+            }
+        }
+        else {
+            sat_log_log(SAT_LOG_LEVEL_ERROR,
+                        _("%s: Error getting %dth satellite"), __func__, i);
+        }
+    }
+}
+
+/**
+ * Get the selected satellite's catnum. 
+ *
+ * @param selector Pointer to the GtkSatSelector widget.
+ *
+ * @return the catnum of the selected satellite, or 0 if none is selected.
+ */
+void gtk_sat_selector_get_selected_with_catnum(GtkSatSelector * selector, gint * catnum)
+{
+    GtkTreeSelection    *selection;
+    GtkTreeModel        *model;
+    GtkTreeIter          iter;
+    gboolean             haveselection;
+    
+    /* get the selection and model */
+    selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(selector->tree));
+    
+    /* get the tree model that contains all satellites */
+    model = GTK_TREE_MODEL(g_slist_nth_data(selector->models, 0));
+    
+    /* get the satellite if one is selected */
+    haveselection = gtk_tree_selection_get_selected(selection, &model, &iter);
+    if (haveselection) 
+        gtk_tree_model_get(model, &iter, GTK_SAT_SELECTOR_COL_CATNUM, catnum, -1);
+    else
+        *catnum = 0;
+    
+}
+
+/**
  * Get information about the selected satellite.
  *
  * @param selector Pointer to the GtkSatSelector widget.
