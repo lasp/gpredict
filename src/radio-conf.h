@@ -60,7 +60,10 @@ typedef enum {
 typedef struct {
     gchar          *name;       /*!< Configuration file name, without .rig. */
     gchar          *host;       /*!< hostname or IP */
+    gchar          *search_string; /*!< the string typed into the search bar */
+    gchar          *path_string;/*!< the GtkTreePath to the selected satellite */
     gint            port;       /*!< port number */
+    gint            trspIdx;    /*!< Transponder index */
     gint            cycle;      /*!< cycle period in msec */
     gdouble         lo;         /*!< local oscillator freq in Hz (using double for
                                    compatibility with rest of code). Downlink. */

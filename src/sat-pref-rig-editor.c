@@ -26,9 +26,11 @@
 
 #include "gpredict-utils.h"
 #include "radio-conf.h"
+#include "trsp-conf.h"
 #include "sat-cfg.h"
 #include "sat-log.h"
 #include "sat-pref-rig-editor.h"
+#include "gtk-sat-selector.h"
 
 
 extern GtkWidget *window;       /* dialog window defined in sat-pref.c */
@@ -36,13 +38,13 @@ static GtkWidget *dialog;       /* dialog window */
 static GtkWidget *name;         /* config name */
 static GtkWidget *host;         /* host */
 static GtkWidget *port;         /* port number */
+static GtkWidget *satSel;       /* satellite */
 static GtkWidget *type;         /* rig type */
 static GtkWidget *ptt;          /* PTT */
 static GtkWidget *vfo;          /* VFO Up/Down selector */
 static GtkWidget *lo;           /* local oscillator of downconverter */
 static GtkWidget *loup;         /* local oscillator of upconverter */
-static GtkWidget *defDnFreq;    /* Default downlink frequency */
-static GtkWidget *defUpFreq;    /* Default uplink frequency */
+static GtkWidget *trspSel;      /* transponder selector */
 static GtkWidget *sigaos;       /* AOS signalling */
 static GtkWidget *siglos;       /* LOS signalling */
 
@@ -54,14 +56,84 @@ static void clear_widgets()
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4532);     /* hamlib default? */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(lo), 0);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(loup), 0);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defDnFreq), 145.89);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defUpFreq), 145.89);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), 0);
     gtk_combo_box_set_active(GTK_COMBO_BOX(type), RIG_TYPE_RX);
     gtk_combo_box_set_active(GTK_COMBO_BOX(ptt), PTT_TYPE_NONE);
     gtk_combo_box_set_active(GTK_COMBO_BOX(vfo), 0);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ptt), FALSE);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(sigaos), FALSE);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(siglos), FALSE);
+}
+
+/*
+ * Updates the transponder list based on the currently selected satellite
+ * in the satellite selector.
+ */
+static void update_transponder_list()
+{
+    GSList   *trsplist;
+    trsp_t   *trsp;
+    gint      catnum, i, n;
+    gchar    *satname;
+    
+    /* Search for the .trsp file by catalog number */
+    gtk_sat_selector_get_selected(GTK_SAT_SELECTOR(satSel), &catnum, 
+                                  &satname, NULL);
+    trsplist = read_transponders((guint) catnum);
+    
+    /* Fill the combo box with the new transponders */
+    gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(trspSel));
+    n = g_slist_length(trsplist);
+    for (i = 0; i < n; i++) {
+        trsp = g_slist_nth_data(trsplist, i);
+        
+        gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(trspSel), 
+                                       trsp -> name);       
+    }
+    free_transponders(trsplist);
+    g_free(satname);
+}
+
+/* 
+ * Updates the default uplink and downlink frequencies based on the 
+ * currently selected transponder.
+ *
+ * @param conf Pointer to a radio_conf_t struct
+ */
+static void update_default_frequencies(radio_conf_t * conf) 
+{
+    GSList   *trsplist;
+    trsp_t   *trsp;
+    gint      catnum, i, n;
+    gchar    *satname, *trspname;
+    
+    /* Search for the .trsp file by catalog number */
+    gtk_sat_selector_get_selected(GTK_SAT_SELECTOR(satSel), &catnum, 
+                                  &satname, NULL);
+    trsplist = read_transponders((guint) catnum);
+    
+    /* Search for the currently selected transponder */
+    trspname = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(
+                                                  trspSel));
+    n = g_slist_length(trsplist);
+    for (i = 0; i < n; i++) {
+        trsp = g_slist_nth_data(trsplist, i);
+        
+        /* Once the selected transponder is found */
+        if (strcmp(trsp->name, trspname) == 0) {
+
+            conf->defDnFreq = trsp->downlow == 0 ? 45890000.0 : trsp->downlow;
+            conf->defUpFreq = trsp->uplow   == 0 ? 45890000.0 : trsp->uplow;
+            
+            return;
+        }
+    }
+    free_transponders(trsplist);
+    g_free(satname);
+    
+    /* Default frequencies if the transponder is not found */
+    conf->defDnFreq = 45890000.0;
+    conf->defUpFreq = 45890000.0;
 }
 
 static void update_widgets(radio_conf_t * conf)
@@ -78,6 +150,15 @@ static void update_widgets(radio_conf_t * conf)
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), conf->port);
     else
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4532); /* hamlib default? */
+        
+    /* satSel->search */
+    if (conf->search_string != NULL)
+        gtk_entry_set_text(GTK_ENTRY(GTK_SAT_SELECTOR(satSel)->search), 
+        		    conf->search_string);
+
+    /* satSel->tree */
+    gtk_sat_selector_set_selected_with_path(GTK_SAT_SELECTOR(satSel), 
+                                            conf->path_string);
 
     /* radio type */
     gtk_combo_box_set_active(GTK_COMBO_BOX(type), conf->type);
@@ -104,13 +185,10 @@ static void update_widgets(radio_conf_t * conf)
     /* lo up in MHz */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(loup), conf->loup / 1000000.0);
 
-    /* Default downlink frequency in MHz */
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defDnFreq),
-                              conf->defDnFreq * 1.0e-6);
-
-    /* Default uplink frequency in Mhz */
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defUpFreq),
-                              conf->defUpFreq * 1.0e-6);
+    /* Transponder selector */
+    update_transponder_list();
+    gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), 
+                              conf->trspIdx);
 
     /* AOS / LOS signalling */
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(sigaos), conf->signal_aos);
@@ -237,6 +315,21 @@ static void type_changed(GtkWidget * widget, gpointer data)
     }
 }
 
+/*
+ * Manage selected satellite changes. This function is called when the 
+ * user selects a new satellite. By default, the first transponder is 
+ * selected when a new satellite is chosen.
+ *
+ * @param widget Pointer to the satellite selector
+ * @param data   Pointer to any data passed
+ */
+static void satSel_changed(GtkWidget * widget, gpointer data)
+{
+    update_transponder_list();
+    
+    gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), 0);
+}
+
 static GtkWidget *create_editor_widgets(radio_conf_t * conf)
 {
     GtkWidget      *table;
@@ -292,12 +385,22 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                 _("Enter the port number where rigctld is "
                                   "listening"));
     gtk_grid_attach(GTK_GRID(table), port, 1, 2, 1, 1);
+    
+    /* satSel */
+    label = gtk_label_new(_("Satellite"));
+    g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 3, 1, 1);
+    
+    satSel = gtk_sat_selector_new(0);
+    g_signal_connect(GTK_SAT_SELECTOR(satSel)->tree, "cursor-changed", 
+    			G_CALLBACK(satSel_changed), NULL);
+    gtk_grid_attach(GTK_GRID(table), satSel, 1, 3, 2, 1);
 
     /* radio type */
     label = gtk_label_new(_("Radio type"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
     //gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 3, 4);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 3, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 4, 1, 1);
 
     type = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(type), _("RX only"));
@@ -346,12 +449,12 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                     " SPACE key on the keyboard. Gpredict will "
                                     "then update the TX Doppler before actually"
                                     " switching to TX."));
-    gtk_grid_attach(GTK_GRID(table), type, 1, 3, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), type, 1, 4, 2, 1);
 
     /* ptt */
     label = gtk_label_new(_("PTT status"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 4, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 5, 1, 1);
 
     ptt = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(ptt), _("None"));
@@ -368,12 +471,12 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                     "This can be used if your radio does not support the read_ptt "
                                     "CAT command and you have a special interface that can "
                                     "read squelch status and send it via CTS."));
-    gtk_grid_attach(GTK_GRID(table), ptt, 1, 4, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), ptt, 1, 5, 2, 1);
 
     /* VFO Up/Down */
     label = gtk_label_new(_("VFO Up/Down"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 5, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 6, 1, 1);
 
     vfo = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(vfo), _("Not applicable"));
@@ -395,12 +498,12 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                    "<b>IC-910H:</b> MAIN\342\206\221 / SUB\342\206\223\n"
                                    "<b>FT-847:</b> SUB\342\206\221 / MAIN\342\206\223\n"
                                    "<b>TS-2000:</b> B\342\206\221 / A\342\206\223"));
-    gtk_grid_attach(GTK_GRID(table), vfo, 1, 5, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), vfo, 1, 6, 2, 1);
 
     /* Downconverter LO frequency */
     label = gtk_label_new(_("LO Down"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 6, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 7, 1, 1);
 
     lo = gtk_spin_button_new_with_range(-10000, 10000, 1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(lo), 0);
@@ -409,16 +512,16 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                 _
                                 ("Enter the frequency of the local oscillator "
                                  " of the downconverter, if any."));
-    gtk_grid_attach(GTK_GRID(table), lo, 1, 6, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), lo, 1, 7, 2, 1);
 
     label = gtk_label_new(_("MHz"));
     g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 3, 6, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 3, 7, 1, 1);
 
     /* Upconverter LO frequency */
     label = gtk_label_new(_("LO Up"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 7, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 8, 1, 1);
 
     loup = gtk_spin_button_new_with_range(-10000, 10000, 1);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(loup), 0);
@@ -427,43 +530,21 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
                                 _
                                 ("Enter the frequency of the local oscillator "
                                  "of the upconverter, if any."));
-    gtk_grid_attach(GTK_GRID(table), loup, 1, 7, 2, 1);
-
-    label = gtk_label_new(_("MHz"));
-    g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 3, 7, 1, 1);
-
-    /* Default downlink frequency */
-    label = gtk_label_new(_("Default downlink"));
-    g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 8, 1, 1);
-
-    defDnFreq = gtk_spin_button_new_with_range(0, 10000, 0.001);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defDnFreq), 0);
-    gtk_spin_button_set_digits(GTK_SPIN_BUTTON(defDnFreq), 3);
-    gtk_widget_set_tooltip_text(defDnFreq,
-                                _("Enter the default downlink frequency"));
-    gtk_grid_attach(GTK_GRID(table), defDnFreq, 1, 8, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), loup, 1, 8, 2, 1);
 
     label = gtk_label_new(_("MHz"));
     g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
     gtk_grid_attach(GTK_GRID(table), label, 3, 8, 1, 1);
 
-    /* Default uplink frequency */
-    label = gtk_label_new(_("Default uplink"));
+    /* Transponder Selector */
+    label = gtk_label_new(_("Transponder"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
     gtk_grid_attach(GTK_GRID(table), label, 0, 9, 1, 1);
 
-    defUpFreq = gtk_spin_button_new_with_range(0, 10000, 0.001);
-    gtk_spin_button_set_digits(GTK_SPIN_BUTTON(defUpFreq), 3);
-    gtk_spin_button_set_value(GTK_SPIN_BUTTON(defUpFreq), 123.456);
-    gtk_widget_set_tooltip_text(defUpFreq,
-                                _("Enter the default uplink frequency"));
-    gtk_grid_attach(GTK_GRID(table), defUpFreq, 1, 9, 2, 1);
-
-    label = gtk_label_new(_("MHz"));
-    g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 3, 9, 1, 1);
+    trspSel = gtk_combo_box_text_new();
+    gtk_widget_set_tooltip_text(trspSel,
+                                _("Select a default transponder"));
+    gtk_grid_attach(GTK_GRID(table), trspSel, 1, 9, 2, 1);
 
     /* AOS / LOS signalling */
     label = gtk_label_new(_("Signalling"));
@@ -505,6 +586,14 @@ static gboolean apply_changes(radio_conf_t * conf)
 
     /* port */
     conf->port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(port));
+    
+    /* satSel->search */
+    conf->search_string = g_strdup(gtk_entry_get_text(GTK_ENTRY(
+    				GTK_SAT_SELECTOR(satSel)->search)));
+    
+    /* satSel->tree */
+    conf->path_string = gtk_sat_selector_get_selected_with_path(
+    				GTK_SAT_SELECTOR(satSel));
 
     /* lo down freq */
     conf->lo = 1000000.0 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(lo));
@@ -512,13 +601,11 @@ static gboolean apply_changes(radio_conf_t * conf)
     /* lo up freq */
     conf->loup = 1000000.0 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(loup));
 
-    /* default downlink freq */
-    conf->defDnFreq = 1000000.0 *
-                      gtk_spin_button_get_value(GTK_SPIN_BUTTON(defDnFreq));
+    /* default frequencies */
+    update_default_frequencies(conf);
 
-    /* default uplink freq */
-    conf->defUpFreq = 1000000.0 *
-                      gtk_spin_button_get_value(GTK_SPIN_BUTTON(defUpFreq));
+    /* transponder index */
+    conf->trspIdx = gtk_combo_box_get_active(GTK_COMBO_BOX(trspSel));
 
     /* rig type */
     conf->type = gtk_combo_box_get_active(GTK_COMBO_BOX(type));

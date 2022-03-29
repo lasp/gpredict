@@ -616,7 +616,7 @@ static void load_trsp_list(GtkRigCtrl * ctrl)
     }
 
     ctrl->trsp = (trsp_t *) g_slist_nth_data(ctrl->trsplist, 0);
-    gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->TrspSel), 0);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->TrspSel), ctrl->conf->trspIdx);
 }
 
 static gboolean have_conf()
@@ -2978,9 +2978,10 @@ GtkWidget      *gtk_rig_ctrl_new(GtkSatModule * module)
                     0, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_uplink_widgets(rigctrl),
                     1, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), create_conf_widgets(rigctrl), 
+                    1, 1, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_target_widgets(rigctrl),
                     0, 1, 1, 1);
-    gtk_grid_attach(GTK_GRID(table), create_conf_widgets(rigctrl), 1, 1, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_count_down_widgets(rigctrl),
                     0, 2, 2, 1);
 

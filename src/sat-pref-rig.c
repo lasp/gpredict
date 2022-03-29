@@ -53,8 +53,11 @@ static GtkTreeModel *create_and_fill_model()
     /* create a new list store */
     liststore = gtk_list_store_new(RIG_LIST_COL_NUM, G_TYPE_STRING,     // name
                                    G_TYPE_STRING,       // host
+                                   G_TYPE_STRING,       // search_string
+                                   G_TYPE_STRING,       // path_string
                                    G_TYPE_INT,  // port
                                    G_TYPE_INT,  // type
+                                   G_TYPE_INT,  // Default transponder index
                                    G_TYPE_INT,  // PTT
                                    G_TYPE_INT,  // VFO Up
                                    G_TYPE_INT,  // VFO Down
@@ -91,7 +94,10 @@ static GtkTreeModel *create_and_fill_model()
                     gtk_list_store_set(liststore, &item,
                                        RIG_LIST_COL_NAME, conf.name,
                                        RIG_LIST_COL_HOST, conf.host,
+                                       RIG_LIST_COL_SEARCH, conf.search_string,
+                                       RIG_LIST_COL_PATH, conf.path_string,
                                        RIG_LIST_COL_PORT, conf.port,
+                                       RIG_LIST_COL_TRSP_IDX, conf.trspIdx,
                                        RIG_LIST_COL_TYPE, conf.type,
                                        RIG_LIST_COL_PTT, conf.ptt,
                                        RIG_LIST_COL_VFOUP, conf.vfoUp,
@@ -390,7 +396,10 @@ static void edit_cb(GtkWidget * button, gpointer data)
     radio_conf_t    conf = {
         .name = NULL,
         .host = NULL,
+        .search_string = NULL,
+        .path_string = NULL,
         .port = 4532,
+        .trspIdx = 0,
         .type = RIG_TYPE_RX,
         .ptt = 0,
         .vfoUp = 0,
@@ -424,7 +433,10 @@ static void edit_cb(GtkWidget * button, gpointer data)
         gtk_tree_model_get(model, &iter,
                            RIG_LIST_COL_NAME, &conf.name,
                            RIG_LIST_COL_HOST, &conf.host,
+                           RIG_LIST_COL_SEARCH, &conf.search_string,
+                           RIG_LIST_COL_PATH, &conf.path_string,
                            RIG_LIST_COL_PORT, &conf.port,
+                           RIG_LIST_COL_TRSP_IDX, &conf.trspIdx,
                            RIG_LIST_COL_TYPE, &conf.type,
                            RIG_LIST_COL_PTT, &conf.ptt,
                            RIG_LIST_COL_VFOUP, &conf.vfoUp,
@@ -462,7 +474,10 @@ static void edit_cb(GtkWidget * button, gpointer data)
         gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                            RIG_LIST_COL_NAME, conf.name,
                            RIG_LIST_COL_HOST, conf.host,
+                           RIG_LIST_COL_SEARCH, conf.search_string,
+                           RIG_LIST_COL_PATH, conf.path_string,
                            RIG_LIST_COL_PORT, conf.port,
+                           RIG_LIST_COL_TRSP_IDX, conf.trspIdx,
                            RIG_LIST_COL_TYPE, conf.type,
                            RIG_LIST_COL_PTT, conf.ptt,
                            RIG_LIST_COL_VFOUP, conf.vfoUp,
@@ -712,7 +727,10 @@ static void add_cb(GtkWidget * button, gpointer data)
     radio_conf_t    conf = {
         .name = NULL,
         .host = NULL,
+        .search_string = NULL,
+        .path_string = NULL,
         .port = 4532,
+        .trspIdx = 0,
         .type = RIG_TYPE_RX,
         .ptt = 0,
         .vfoUp = 0,
@@ -737,7 +755,10 @@ static void add_cb(GtkWidget * button, gpointer data)
         gtk_list_store_set(liststore, &item,
                            RIG_LIST_COL_NAME, conf.name,
                            RIG_LIST_COL_HOST, conf.host,
+                           RIG_LIST_COL_SEARCH, conf.search_string,
+                           RIG_LIST_COL_PATH, conf.path_string,
                            RIG_LIST_COL_PORT, conf.port,
+                           RIG_LIST_COL_TRSP_IDX, conf.trspIdx,
                            RIG_LIST_COL_TYPE, conf.type,
                            RIG_LIST_COL_PTT, conf.ptt,
                            RIG_LIST_COL_VFOUP, conf.vfoUp,
@@ -840,7 +861,10 @@ void sat_pref_rig_ok()
     radio_conf_t    conf = {
         .name = NULL,
         .host = NULL,
+        .search_string = NULL,
+        .path_string = NULL,
         .port = 4532,
+        .trspIdx = 0,
         .type = RIG_TYPE_RX,
         .ptt = 0,
         .vfoUp = 0,
@@ -888,7 +912,10 @@ void sat_pref_rig_ok()
             gtk_tree_model_get(model, &iter,
                                RIG_LIST_COL_NAME, &conf.name,
                                RIG_LIST_COL_HOST, &conf.host,
+                               RIG_LIST_COL_SEARCH, &conf.search_string,
+                               RIG_LIST_COL_PATH, &conf.path_string,
                                RIG_LIST_COL_PORT, &conf.port,
+                               RIG_LIST_COL_TRSP_IDX, &conf.trspIdx,
                                RIG_LIST_COL_TYPE, &conf.type,
                                RIG_LIST_COL_PTT, &conf.ptt,
                                RIG_LIST_COL_VFOUP, &conf.vfoUp,
