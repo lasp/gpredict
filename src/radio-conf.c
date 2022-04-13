@@ -378,6 +378,7 @@ void radio_conf_save(radio_conf_t * conf)
     g_key_file_set_string(cfg, GROUP, KEY_SEARCH_STRING, conf->search_string);
     g_key_file_set_string(cfg, GROUP, KEY_PATH_STRING, conf->path_string);
     g_key_file_set_integer(cfg, GROUP, KEY_PORT, conf->port);
+    g_key_file_set_integer(cfg, GROUP, KEY_CYCLE, conf->cycle);
     g_key_file_set_double(cfg, GROUP, KEY_LO, conf->lo);
     g_key_file_set_double(cfg, GROUP, KEY_LOUP, conf->loup);
     g_key_file_set_double(cfg, GROUP, KEY_DEF_UP_FREQ, conf->defUpFreq);
@@ -385,11 +386,6 @@ void radio_conf_save(radio_conf_t * conf)
     g_key_file_set_integer(cfg, GROUP, KEY_TRSP_IDX, conf->trspIdx);
     g_key_file_set_integer(cfg, GROUP, KEY_TYPE, conf->type);
     g_key_file_set_integer(cfg, GROUP, KEY_PTT, conf->ptt);
-
-    if (conf->cycle == DEFAULT_CYCLE_MS)
-        g_key_file_remove_key(cfg, GROUP, KEY_CYCLE, NULL);
-    else
-        g_key_file_set_integer(cfg, GROUP, KEY_CYCLE, conf->cycle);
 
     if (conf->type == RIG_TYPE_DUPLEX)
     {

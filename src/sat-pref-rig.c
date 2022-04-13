@@ -61,6 +61,7 @@ static GtkTreeModel *create_and_fill_model()
                                    G_TYPE_INT,  // PTT
                                    G_TYPE_INT,  // VFO Up
                                    G_TYPE_INT,  // VFO Down
+                                   G_TYPE_INT,  // cycle
                                    G_TYPE_DOUBLE,       // LO DOWN
                                    G_TYPE_DOUBLE,       // LO UO
                                    G_TYPE_DOUBLE,       // Default down freq.
@@ -102,6 +103,7 @@ static GtkTreeModel *create_and_fill_model()
                                        RIG_LIST_COL_PTT, conf.ptt,
                                        RIG_LIST_COL_VFOUP, conf.vfoUp,
                                        RIG_LIST_COL_VFODOWN, conf.vfoDown,
+                                       RIG_LIST_COL_CYCLE, conf.cycle,
                                        RIG_LIST_COL_LO, conf.lo,
                                        RIG_LIST_COL_LOUP, conf.loup,
                                        RIG_LIST_COL_DEF_UP_FREQ, conf.defUpFreq,
@@ -404,6 +406,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
         .ptt = 0,
         .vfoUp = 0,
         .vfoDown = 0,
+        .cycle = 10,
         .lo = 0.0,
         .loup = 0.0,
         .defUpFreq = 0.0,
@@ -441,6 +444,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            RIG_LIST_COL_PTT, &conf.ptt,
                            RIG_LIST_COL_VFOUP, &conf.vfoUp,
                            RIG_LIST_COL_VFODOWN, &conf.vfoDown,
+                           RIG_LIST_COL_CYCLE, &conf.cycle,
                            RIG_LIST_COL_LO, &conf.lo,
                            RIG_LIST_COL_LOUP, &conf.loup,
                            RIG_LIST_COL_DEF_UP_FREQ, &conf.defUpFreq,
@@ -482,6 +486,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            RIG_LIST_COL_PTT, conf.ptt,
                            RIG_LIST_COL_VFOUP, conf.vfoUp,
                            RIG_LIST_COL_VFODOWN, conf.vfoDown,
+                           RIG_LIST_COL_CYCLE, conf.cycle,
                            RIG_LIST_COL_LO, conf.lo,
                            RIG_LIST_COL_LOUP, conf.loup,
                            RIG_LIST_COL_DEF_UP_FREQ, conf.defUpFreq,
@@ -735,6 +740,7 @@ static void add_cb(GtkWidget * button, gpointer data)
         .ptt = 0,
         .vfoUp = 0,
         .vfoDown = 0,
+        .cycle = 10,
         .lo = 0.0,
         .loup = 0.0,
         .defDnFreq = 14589000.0,
@@ -763,6 +769,7 @@ static void add_cb(GtkWidget * button, gpointer data)
                            RIG_LIST_COL_PTT, conf.ptt,
                            RIG_LIST_COL_VFOUP, conf.vfoUp,
                            RIG_LIST_COL_VFODOWN, conf.vfoDown,
+                           RIG_LIST_COL_CYCLE, conf.cycle,
                            RIG_LIST_COL_LO, conf.lo,
                            RIG_LIST_COL_LOUP, conf.loup,
                            RIG_LIST_COL_DEF_UP_FREQ, conf.defUpFreq,
@@ -869,6 +876,7 @@ void sat_pref_rig_ok()
         .ptt = 0,
         .vfoUp = 0,
         .vfoDown = 0,
+        .cycle = 10,
         .lo = 0.0,
         .loup = 0.0,
         .defDnFreq = 14589000.0,
@@ -920,6 +928,7 @@ void sat_pref_rig_ok()
                                RIG_LIST_COL_PTT, &conf.ptt,
                                RIG_LIST_COL_VFOUP, &conf.vfoUp,
                                RIG_LIST_COL_VFODOWN, &conf.vfoDown,
+                               RIG_LIST_COL_CYCLE, &conf.cycle,
                                RIG_LIST_COL_LO, &conf.lo,
                                RIG_LIST_COL_LOUP, &conf.loup,
                                RIG_LIST_COL_DEF_UP_FREQ, &conf.defUpFreq,

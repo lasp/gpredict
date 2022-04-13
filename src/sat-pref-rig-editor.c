@@ -44,6 +44,7 @@ static GtkWidget *ptt;          /* PTT */
 static GtkWidget *vfo;          /* VFO Up/Down selector */
 static GtkWidget *lo;           /* local oscillator of downconverter */
 static GtkWidget *loup;         /* local oscillator of upconverter */
+static GtkWidget *cycleSel;     /* cycle selector */
 static GtkWidget *trspSel;      /* transponder selector */
 static GtkWidget *sigaos;       /* AOS signalling */
 static GtkWidget *siglos;       /* LOS signalling */
@@ -56,6 +57,7 @@ static void clear_widgets()
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4532);     /* hamlib default? */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(lo), 0);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(loup), 0);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(cycleSel), 10);
     gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), 0);
     gtk_combo_box_set_active(GTK_COMBO_BOX(type), RIG_TYPE_RX);
     gtk_combo_box_set_active(GTK_COMBO_BOX(ptt), PTT_TYPE_NONE);
@@ -184,6 +186,9 @@ static void update_widgets(radio_conf_t * conf)
 
     /* lo up in MHz */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(loup), conf->loup / 1000000.0);
+
+    /* cycle selector */
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(cycleSel), conf->cycle);
 
     /* Transponder selector */
     update_transponder_list();
@@ -536,28 +541,46 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
     g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
     gtk_grid_attach(GTK_GRID(table), label, 3, 8, 1, 1);
 
+    /* Cycle Selector */
+    label = gtk_label_new(_("Cycle"));
+    g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
+    gtk_grid_attach(GTK_GRID(table), label, 0,9,1,1);
+    
+    cycleSel = gtk_spin_button_new_with_range(10, 10000, 1);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(cycleSel), 10);
+    gtk_spin_button_set_digits(GTK_SPIN_BUTTON(cycleSel), 0);
+    gtk_spin_button_set_increments(GTK_SPIN_BUTTON(cycleSel), 10, 10);
+    gtk_widget_set_tooltip_text(cycleSel, 
+                                _
+                                ("Enter the cycle rate in miliseconds."));
+    gtk_grid_attach(GTK_GRID(table), cycleSel, 1,9,2,1);
+    
+    label = gtk_label_new(_("msec"));
+    g_object_set(label, "xalign", 0.0, "yalign", 0.5, NULL);
+    gtk_grid_attach(GTK_GRID(table), label, 3, 9, 1, 1);
+
     /* Transponder Selector */
     label = gtk_label_new(_("Transponder"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 9, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 10, 1, 1);
 
     trspSel = gtk_combo_box_text_new();
     gtk_widget_set_tooltip_text(trspSel,
                                 _("Select a default transponder"));
-    gtk_grid_attach(GTK_GRID(table), trspSel, 1, 9, 2, 1);
+    gtk_grid_attach(GTK_GRID(table), trspSel, 1, 10, 2, 1);
 
     /* AOS / LOS signalling */
     label = gtk_label_new(_("Signalling"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
-    gtk_grid_attach(GTK_GRID(table), label, 0, 10, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 11, 1, 1);
 
     sigaos = gtk_check_button_new_with_label(_("AOS"));
-    gtk_grid_attach(GTK_GRID(table), sigaos, 1, 10, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), sigaos, 1, 11, 1, 1);
     gtk_widget_set_tooltip_text(sigaos,
                                 _("Enable AOS signalling for this radio."));
 
     siglos = gtk_check_button_new_with_label(_("LOS"));
-    gtk_grid_attach(GTK_GRID(table), siglos, 2, 10, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), siglos, 2, 11, 1, 1);
     gtk_widget_set_tooltip_text(siglos,
                                 _("Enable LOS signalling for this radio."));
 
@@ -600,6 +623,9 @@ static gboolean apply_changes(radio_conf_t * conf)
 
     /* lo up freq */
     conf->loup = 1000000.0 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(loup));
+    
+    /* cycle */
+    conf->cycle = (gint) gtk_spin_button_get_value(GTK_SPIN_BUTTON(cycleSel));
 
     /* default frequencies */
     update_default_frequencies(conf);
