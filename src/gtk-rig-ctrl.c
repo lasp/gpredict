@@ -1008,7 +1008,7 @@ static void rig_engaged_cb(GtkToggleButton * button, gpointer data)
 
 static GtkWidget *create_target_widgets(GtkRigCtrl * ctrl)
 {
-    GtkWidget      *frame, *table, *label, *track;
+    GtkWidget      *frame, *table, *label;
     GtkWidget      *tune, *trsplock, *hbox;
     gchar          *buff;
     guint           i, n;
@@ -1039,13 +1039,13 @@ static GtkWidget *create_target_widgets(GtkRigCtrl * ctrl)
     gtk_grid_attach(GTK_GRID(table), ctrl->SatSel, 0, 0, 3, 1);
 
     /* tracking button */
-    track = gtk_toggle_button_new_with_label(_("Track"));
-    gtk_widget_set_tooltip_text(track,
+    ctrl->TrackBut = gtk_toggle_button_new_with_label(_("Track"));
+    gtk_widget_set_tooltip_text(ctrl->TrackBut,
                                 _("Track the satellite transponder.\n"
                                   "Enabling this button will apply Doppler "
                                   "correction to the frequency of the radio."));
-    gtk_grid_attach(GTK_GRID(table), track, 3, 0, 1, 1);
-    g_signal_connect(track, "toggled", G_CALLBACK(track_toggle_cb), ctrl);
+    gtk_grid_attach(GTK_GRID(table), ctrl->TrackBut, 3, 0, 1, 1);
+    g_signal_connect(ctrl->TrackBut, "toggled", G_CALLBACK(track_toggle_cb), ctrl);
 
     /* Transponder selector, tune, and trsplock buttons */
     ctrl->TrspSel = gtk_combo_box_text_new();
@@ -2965,6 +2965,12 @@ GtkWidget      *gtk_rig_ctrl_new(GtkSatModule * module)
     gtk_grid_attach(GTK_GRID(table), create_conf_widgets(rigctrl), 1, 1, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_count_down_widgets(rigctrl),
                     0, 2, 2, 1);
+
+    /* track and engage the radio control */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(GTK_RIG_CTRL(
+                          rigctrl)->TrackBut), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(GTK_RIG_CTRL(
+                          rigctrl)->LockBut), TRUE);
 
     gtk_container_add(GTK_CONTAINER(rigctrl), table);
 
