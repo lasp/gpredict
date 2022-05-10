@@ -43,6 +43,7 @@ static GtkWidget *maxaz;
 static GtkWidget *minel;
 static GtkWidget *maxel;
 static GtkWidget *azstoppos;
+static GtkWidget *threshold;
 
 /* Update widgets from the currently selected row in the treeview */
 static void update_widgets(rotor_conf_t * conf)
@@ -68,6 +69,9 @@ static void update_widgets(rotor_conf_t * conf)
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(minel), conf->minel);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(maxel), conf->maxel);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(azstoppos), conf->azstoppos);
+    
+    /* threshold */
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(threshold), conf->threshold);
 }
 
 /* called when the user clicks on the CLEAR button */
@@ -82,6 +86,7 @@ static void clear_widgets()
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(minel), 0);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(maxel), 90);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(azstoppos), 0);
+    gtk_spin_button_set_value(GTK_SPIN_BUTTON(threshold), 0);
 }
 
 /*
@@ -291,6 +296,20 @@ static GtkWidget *create_editor_widgets(rotor_conf_t * conf)
                                   "-180\302\260 \342\206\222 0\302\260 "
                                   "\342\206\222 +180\302\260 rotor is -180\302\260."));
     gtk_grid_attach(GTK_GRID(table), azstoppos, 3, 7, 1, 1);
+    
+    /* Threshold */
+    label = gtk_label_new(_(" Threshold"));
+    g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 8, 1, 1);
+    threshold = gtk_spin_button_new_with_range(0.01, 50.0, 0.01);
+    gtk_spin_button_set_digits(GTK_SPIN_BUTTON(threshold), 2);
+    gtk_widget_set_tooltip_text(threshold,
+                                _("This parameter sets the threshold that triggers "
+                                  "new motion command to the rotator.\n"
+                                  "If the difference between the target and "
+                                  "rotator values is smaller than the "
+                                  "threshold, no new commands are sent"));
+    gtk_grid_attach(GTK_GRID(table), threshold, 1, 8, 2, 1);
 
     if (conf->name != NULL)
         update_widgets(conf);
@@ -329,6 +348,9 @@ static gboolean apply_changes(rotor_conf_t * conf)
 
     /* az stop position */
     conf->azstoppos = gtk_spin_button_get_value(GTK_SPIN_BUTTON(azstoppos));
+    
+    /* threshold */
+    conf->threshold = gtk_spin_button_get_value(GTK_SPIN_BUTTON(threshold));
 
     return TRUE;
 }

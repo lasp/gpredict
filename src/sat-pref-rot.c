@@ -58,6 +58,7 @@ static void add_cb(GtkWidget * button, gpointer data)
         .maxel = 90,
         .aztype = ROT_AZ_TYPE_360,
         .azstoppos = 0,
+        .threshold = 0,
     };
 
     /* run rot conf editor */
@@ -78,7 +79,8 @@ static void add_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_MINEL, conf.minel,
                            ROT_LIST_COL_MAXEL, conf.maxel,
                            ROT_LIST_COL_AZTYPE, conf.aztype,
-                           ROT_LIST_COL_AZSTOPPOS, conf.azstoppos, -1);
+                           ROT_LIST_COL_AZSTOPPOS, conf.azstoppos,
+                           ROT_LIST_COL_THLD, conf.threshold, -1);
 
         g_free(conf.name);
 
@@ -107,6 +109,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
         .maxel = 90,
         .aztype = ROT_AZ_TYPE_360,
         .azstoppos = 0,         //used in the "new rotator" dialog
+        .threshold = 0,
     };
 
     /* If there are no entries, we have a bug since the button should 
@@ -137,7 +140,8 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_MINEL, &conf.minel,
                            ROT_LIST_COL_MAXEL, &conf.maxel,
                            ROT_LIST_COL_AZTYPE, &conf.aztype,
-                           ROT_LIST_COL_AZSTOPPOS, &conf.azstoppos, -1);
+                           ROT_LIST_COL_AZSTOPPOS, &conf.azstoppos,
+                           ROT_LIST_COL_THLD, &conf.threshold, -1);
     }
     else
     {
@@ -172,7 +176,8 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_MINEL, conf.minel,
                            ROT_LIST_COL_MAXEL, conf.maxel,
                            ROT_LIST_COL_AZTYPE, conf.aztype,
-                           ROT_LIST_COL_AZSTOPPOS, conf.azstoppos, -1);
+                           ROT_LIST_COL_AZSTOPPOS, conf.azstoppos,
+                           ROT_LIST_COL_THLD, conf.threshold, -1);
     }
 
     /* clean up memory */
@@ -258,7 +263,8 @@ static GtkTreeModel *create_and_fill_model()
                                    G_TYPE_DOUBLE,       // Min El
                                    G_TYPE_DOUBLE,       // Max El
                                    G_TYPE_INT,  // Az type
-                                   G_TYPE_DOUBLE        // Az Stop Position
+                                   G_TYPE_DOUBLE,        // Az Stop Position
+                                   G_TYPE_DOUBLE        // Threshold
         );
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(liststore),
                                          ROT_LIST_COL_NAME,
@@ -291,7 +297,7 @@ static GtkTreeModel *create_and_fill_model()
                                        ROT_LIST_COL_MAXEL, conf.maxel,
                                        ROT_LIST_COL_AZTYPE, conf.aztype,
                                        ROT_LIST_COL_AZSTOPPOS, conf.azstoppos,
-                                       -1);
+                                       ROT_LIST_COL_THLD, conf.threshold, -1);
 
                     sat_log_log(SAT_LOG_LEVEL_DEBUG,
                                 _("%s:%d: Read %s"),
@@ -521,6 +527,13 @@ static void create_rot_list()
 
     g_signal_connect(rotlist, "row-activated", G_CALLBACK(row_activated_cb),
                      NULL);
+                     
+    /* Threshold */
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes(_("Threshold"), renderer,
+                                                      "text",
+                                                      ROT_LIST_COL_THLD, NULL);
+    gtk_tree_view_insert_column(GTK_TREE_VIEW(rotlist), column, -1);
 
 }
 
@@ -575,6 +588,7 @@ void sat_pref_rot_ok()
         .maxel = 90,
         .aztype = ROT_AZ_TYPE_360,
         .azstoppos = 0,
+        .threshold = 0,
     };
 
 
@@ -621,7 +635,8 @@ void sat_pref_rot_ok()
                                ROT_LIST_COL_MINEL, &conf.minel,
                                ROT_LIST_COL_MAXEL, &conf.maxel,
                                ROT_LIST_COL_AZTYPE, &conf.aztype,
-                               ROT_LIST_COL_AZSTOPPOS, &conf.azstoppos, -1);
+                               ROT_LIST_COL_AZSTOPPOS, &conf.azstoppos,
+                               ROT_LIST_COL_THLD, &conf.threshold, -1);
             rotor_conf_save(&conf);
 
             /* free conf buffer */

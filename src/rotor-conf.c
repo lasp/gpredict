@@ -249,16 +249,12 @@ void rotor_conf_save(rotor_conf_t * conf)
     g_key_file_set_double(cfg, GROUP, KEY_MINEL, conf->minel);
     g_key_file_set_double(cfg, GROUP, KEY_MAXEL, conf->maxel);
     g_key_file_set_double(cfg, GROUP, KEY_AZSTOPPOS, conf->azstoppos);
+    g_key_file_set_double(cfg, GROUP, KEY_THLD, conf->threshold);
 
     if (conf->cycle == DEFAULT_CYCLE_MS)
         g_key_file_remove_key(cfg, GROUP, KEY_CYCLE, NULL);
     else
         g_key_file_set_integer(cfg, GROUP, KEY_CYCLE, conf->cycle);
-
-    if (conf->threshold == DEFAULT_THLD_DEG)
-        g_key_file_remove_key(cfg, GROUP, KEY_THLD, NULL);
-    else
-        g_key_file_set_double(cfg, GROUP, KEY_THLD, conf->threshold);
 
     /* build filename */
     confdir = get_hwconf_dir();
