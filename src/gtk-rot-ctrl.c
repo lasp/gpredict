@@ -1684,6 +1684,12 @@ GtkWidget      *gtk_rot_ctrl_new(GtkSatModule * module)
     rot_ctrl->timerid = g_timeout_add(rot_ctrl->delay,
                                       rot_ctrl_timeout_cb, rot_ctrl);
 
+    /* track and engage rotator control */
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(GTK_ROT_CTRL(
+                          rot_ctrl)->track), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(GTK_ROT_CTRL(
+                          rot_ctrl)->LockBut), TRUE);
+
     if (module->target > 0)
         gtk_rot_ctrl_select_sat(rot_ctrl, module->target);
 
