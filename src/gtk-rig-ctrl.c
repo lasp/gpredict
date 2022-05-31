@@ -616,7 +616,7 @@ static void load_trsp_list(GtkRigCtrl * ctrl)
     }
 
     ctrl->trsp = (trsp_t *) g_slist_nth_data(ctrl->trsplist, 0);
-    gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->TrspSel), ctrl->conf->trspIdx);
+    gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->TrspSel), 0);
 }
 
 static gboolean have_conf()

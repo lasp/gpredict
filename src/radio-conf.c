@@ -36,20 +36,19 @@
 #define GROUP           "Radio"
 #define KEY_HOST        "Host"
 #define KEY_PORT        "Port"
+#define KEY_CATNUM      "CATNUM"
 #define KEY_CYCLE       "Cycle"
 #define KEY_LO          "LO"
 #define KEY_LOUP        "LO_UP"
 #define KEY_DEF_UP_FREQ "DefaultUplinkFreqHz"
 #define KEY_DEF_DN_FREQ "DefaultDownlinkFreqHz"
-#define KEY_TRSP_IDX    "TransponderIndex"
+#define KEY_TRSP_NAME   "TRSP_NAME"
 #define KEY_TYPE        "Type"
 #define KEY_PTT         "PTT"
 #define KEY_VFO_DOWN    "VFO_DOWN"
 #define KEY_VFO_UP      "VFO_UP"
 #define KEY_SIG_AOS     "SIGNAL_AOS"
 #define KEY_SIG_LOS     "SIGNAL_LOS"
-#define KEY_PATH_STRING "PathString"
-#define KEY_SEARCH_STRING "SearchString"
 
 #define DEFAULT_CYCLE_MS    1000
 
@@ -221,11 +220,11 @@ gboolean radio_conf_read(radio_conf_t * conf)
         conf->defDnFreq = 145890000.0;
     }
     
-    /* KEY_TRSP_IDX is optional */
-    if (g_key_file_has_key(cfg, GROUP, KEY_TRSP_IDX, NULL))
+    /* KEY_TRSP_NAME is optional */
+    if (g_key_file_has_key(cfg, GROUP, KEY_TRSP_NAME, NULL))
     {
-        conf->trspIdx =
-            g_key_file_get_integer(cfg, GROUP, KEY_TRSP_IDX, &error);
+        conf->trsp_name =
+            g_key_file_get_string(cfg, GROUP, KEY_TRSP_NAME, &error);
         if (error != NULL)
         {
             sat_log_log(SAT_LOG_LEVEL_ERROR,
@@ -238,14 +237,14 @@ gboolean radio_conf_read(radio_conf_t * conf)
     }
     else
     {
-        conf->trspIdx = 0;
+        conf->trsp_name = NULL;
     }
     
-    /* KEY_PATH_STRING is optional */
-    if (g_key_file_has_key(cfg, GROUP, KEY_PATH_STRING, NULL))
+    /* KEY_CATNUM is optional */
+    if (g_key_file_has_key(cfg, GROUP, KEY_CATNUM, NULL))
     {
-    	conf->path_string =
-    	    g_key_file_get_string(cfg, GROUP, KEY_PATH_STRING, &error);
+    	conf->catnum =
+    	    g_key_file_get_integer(cfg, GROUP, KEY_CATNUM, &error);
     	if (error != NULL)
     	{
     	    sat_log_log(SAT_LOG_LEVEL_ERROR,
@@ -258,27 +257,7 @@ gboolean radio_conf_read(radio_conf_t * conf)
     }
     else
     {
-    	conf->path_string = NULL;
-    }
-    
-    /* KEY_SEARCH_STRING is optional */
-    if (g_key_file_has_key(cfg, GROUP, KEY_SEARCH_STRING, NULL))
-    {
-    	conf->search_string =
-    	    g_key_file_get_string(cfg, GROUP, KEY_SEARCH_STRING, &error);
-    	if (error != NULL)
-    	{
-    	    sat_log_log(SAT_LOG_LEVEL_ERROR,
-                        _("%s: Error reading radio conf from %s (%s)."),
-                        __func__, conf->name, error->message);
-            g_clear_error(&error);
-            g_key_file_free(cfg);
-            return FALSE;
-    	}
-    }
-    else
-    {
-    	conf->search_string = NULL;
+    	conf->catnum = 0;
     }
 
     /* Radio type */
@@ -375,15 +354,14 @@ void radio_conf_save(radio_conf_t * conf)
     cfg = g_key_file_new();
 
     g_key_file_set_string(cfg, GROUP, KEY_HOST, conf->host);
-    g_key_file_set_string(cfg, GROUP, KEY_SEARCH_STRING, conf->search_string);
-    g_key_file_set_string(cfg, GROUP, KEY_PATH_STRING, conf->path_string);
+    g_key_file_set_string(cfg, GROUP, KEY_TRSP_NAME, conf->trsp_name);
     g_key_file_set_integer(cfg, GROUP, KEY_PORT, conf->port);
+    g_key_file_set_integer(cfg, GROUP, KEY_CATNUM, conf->catnum);
     g_key_file_set_integer(cfg, GROUP, KEY_CYCLE, conf->cycle);
     g_key_file_set_double(cfg, GROUP, KEY_LO, conf->lo);
     g_key_file_set_double(cfg, GROUP, KEY_LOUP, conf->loup);
     g_key_file_set_double(cfg, GROUP, KEY_DEF_UP_FREQ, conf->defUpFreq);
     g_key_file_set_double(cfg, GROUP, KEY_DEF_DN_FREQ, conf->defDnFreq);
-    g_key_file_set_integer(cfg, GROUP, KEY_TRSP_IDX, conf->trspIdx);
     g_key_file_set_integer(cfg, GROUP, KEY_TYPE, conf->type);
     g_key_file_set_integer(cfg, GROUP, KEY_PTT, conf->ptt);
 

@@ -75,12 +75,10 @@ static void update_transponder_list()
 {
     GSList   *trsplist;
     trsp_t   *trsp;
-    gint      catnum, i, n;
-    gchar    *satname;
+    gint      i, n, catnum;
     
     /* Search for the .trsp file by catalog number */
-    gtk_sat_selector_get_selected(GTK_SAT_SELECTOR(satSel), &catnum, 
-                                  &satname, NULL);
+    gtk_sat_selector_get_selected_with_catnum(GTK_SAT_SELECTOR(satSel), &catnum);
     trsplist = read_transponders((guint) catnum);
     
     /* Fill the combo box with the new transponders */
@@ -93,7 +91,6 @@ static void update_transponder_list()
                                        trsp -> name);       
     }
     free_transponders(trsplist);
-    g_free(satname);
 }
 
 /* 
@@ -140,6 +137,10 @@ static void update_default_frequencies(radio_conf_t * conf)
 
 static void update_widgets(radio_conf_t * conf)
 {
+    GSList *trsplist;
+    trsp_t *trsp;
+    gint    i, n;
+
     /* configuration name */
     gtk_entry_set_text(GTK_ENTRY(name), conf->name);
 
@@ -153,14 +154,29 @@ static void update_widgets(radio_conf_t * conf)
     else
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4532); /* hamlib default? */
         
-    /* satSel->search */
-    if (conf->search_string != NULL)
-        gtk_entry_set_text(GTK_ENTRY(GTK_SAT_SELECTOR(satSel)->search), 
-        		    conf->search_string);
-
-    /* satSel->tree */
-    gtk_sat_selector_set_selected_with_path(GTK_SAT_SELECTOR(satSel), 
-                                            conf->path_string);
+    /* catnum / transponder */
+    if (conf->catnum != 0) {
+        /* select the satellite */
+        gtk_sat_selector_set_selected_with_catnum(GTK_SAT_SELECTOR(
+                                                  satSel), conf->catnum);
+        
+        /* load satellite's transponders and select one if chosen */
+        update_transponder_list();
+        if (conf->trsp_name != NULL) {
+            trsplist = read_transponders((guint) conf->catnum);
+            
+            /* Loop through each transponder */
+            n = g_slist_length(trsplist);
+            for (i = 0; i < n; i++) {
+                trsp = g_slist_nth_data(trsplist, i);
+                
+                if (strcmp(trsp->name, conf->trsp_name) == 0) {
+                    gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), i);
+                    break;
+                }
+            }
+        } 
+    }
 
     /* radio type */
     gtk_combo_box_set_active(GTK_COMBO_BOX(type), conf->type);
@@ -189,11 +205,6 @@ static void update_widgets(radio_conf_t * conf)
 
     /* cycle selector */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(cycleSel), conf->cycle);
-
-    /* Transponder selector */
-    update_transponder_list();
-    gtk_combo_box_set_active(GTK_COMBO_BOX(trspSel), 
-                              conf->trspIdx);
 
     /* AOS / LOS signalling */
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(sigaos), conf->signal_aos);
@@ -595,6 +606,8 @@ static GtkWidget *create_editor_widgets(radio_conf_t * conf)
 /* Apply changes. Returns TRUE if things are ok, FALSE otherwise */
 static gboolean apply_changes(radio_conf_t * conf)
 {
+    gchar *satname; 
+
     /* name */
     if (conf->name)
         g_free(conf->name);
@@ -610,13 +623,9 @@ static gboolean apply_changes(radio_conf_t * conf)
     /* port */
     conf->port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(port));
     
-    /* satSel->search */
-    conf->search_string = g_strdup(gtk_entry_get_text(GTK_ENTRY(
-    				GTK_SAT_SELECTOR(satSel)->search)));
-    
-    /* satSel->tree */
-    conf->path_string = gtk_sat_selector_get_selected_with_path(
-    				GTK_SAT_SELECTOR(satSel));
+    /* catnum */
+    gtk_sat_selector_get_selected(GTK_SAT_SELECTOR(satSel), &(conf->catnum), 
+                                  &satname, NULL);
 
     /* lo down freq */
     conf->lo = 1000000.0 * gtk_spin_button_get_value(GTK_SPIN_BUTTON(lo));
@@ -630,8 +639,9 @@ static gboolean apply_changes(radio_conf_t * conf)
     /* default frequencies */
     update_default_frequencies(conf);
 
-    /* transponder index */
-    conf->trspIdx = gtk_combo_box_get_active(GTK_COMBO_BOX(trspSel));
+    /* transponder name */
+    conf->trsp_name = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(
+    							 trspSel));
 
     /* rig type */
     conf->type = gtk_combo_box_get_active(GTK_COMBO_BOX(type));
