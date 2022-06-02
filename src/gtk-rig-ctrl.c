@@ -1029,8 +1029,9 @@ static GtkWidget *create_target_widgets(GtkRigCtrl * ctrl)
     GtkWidget      *frame, *table, *label, *track;
     GtkWidget      *tune, *trsplock, *hbox;
     gchar          *buff;
-    guint           i, n;
+    guint           i, j, n, m;
     sat_t          *sat = NULL;
+    trsp_t         *trsp = NULL;
 
     buff = g_strdup_printf(AZEL_FMTSTR, 0.0);
 
@@ -1150,6 +1151,34 @@ static GtkWidget *create_target_widgets(GtkRigCtrl * ctrl)
     gtk_widget_set_tooltip_text(ctrl->SatRngRate,
                                 _("The rate of change for the distance between"
                                   " the satellite and the observer."));
+
+    /* Search for selected satellite, if one exists */
+    if (ctrl->conf->catnum != 0) {
+        n = g_slist_length(ctrl->sats);
+        for (i = 0; i < n; i++) {
+            sat = SAT(g_slist_nth_data(ctrl->sats, i));
+          
+            if (sat->tle.catnr == ctrl->conf->catnum) {
+                gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->SatSel), i);
+                
+                /* Search for selected transponder, if one exists */
+                if (ctrl->conf->trsp_name != NULL) {
+                    m = g_slist_length(ctrl->trsplist);
+                    for (j = 0; j < m; j++) {
+                        trsp = TRSP(g_slist_nth_data(ctrl->trsplist, j));
+                         
+                        if (strcmp(trsp->name, ctrl->conf->trsp_name) == 0) {
+                            gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->TrspSel), j);
+                             
+                            break; // break out of transponder search
+                        }
+                    }
+                }
+                
+                break; // break out of satellite search 
+            }
+        }
+    }
 
     frame = gtk_frame_new(_("Target"));
     gtk_container_add(GTK_CONTAINER(frame), table);

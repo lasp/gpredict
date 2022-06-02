@@ -41,6 +41,9 @@ typedef struct {
     gchar          *mode;       /*!< Mode descriptor. */
 } trsp_t;
 
+/* Type casting macro */
+#define TRSP(trsp)  ((trsp_t *) trsp)
+
 /* The actual data would then be a singly linked list with pointers to transponder_t structures */
 
 GSList         *read_transponders(guint catnum);
