@@ -52,6 +52,7 @@ static void add_cb(GtkWidget * button, gpointer data)
         .name = NULL,
         .host = NULL,
         .port = 4533,
+        .catnum = 0,
         .minaz = 0,
         .maxaz = 360,
         .minel = 0,
@@ -74,6 +75,7 @@ static void add_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_NAME, conf.name,
                            ROT_LIST_COL_HOST, conf.host,
                            ROT_LIST_COL_PORT, conf.port,
+                           ROT_LIST_COL_CATNUM, conf.catnum,
                            ROT_LIST_COL_MINAZ, conf.minaz,
                            ROT_LIST_COL_MAXAZ, conf.maxaz,
                            ROT_LIST_COL_MINEL, conf.minel,
@@ -103,6 +105,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
         .name = NULL,
         .host = NULL,
         .port = 4533,
+        .catnum = 0,
         .minaz = 0,
         .maxaz = 360,
         .minel = 0,
@@ -135,6 +138,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_NAME, &conf.name,
                            ROT_LIST_COL_HOST, &conf.host,
                            ROT_LIST_COL_PORT, &conf.port,
+                           ROT_LIST_COL_CATNUM, &conf.catnum,
                            ROT_LIST_COL_MINAZ, &conf.minaz,
                            ROT_LIST_COL_MAXAZ, &conf.maxaz,
                            ROT_LIST_COL_MINEL, &conf.minel,
@@ -171,6 +175,7 @@ static void edit_cb(GtkWidget * button, gpointer data)
                            ROT_LIST_COL_NAME, conf.name,
                            ROT_LIST_COL_HOST, conf.host,
                            ROT_LIST_COL_PORT, conf.port,
+                           ROT_LIST_COL_CATNUM, conf.catnum,
                            ROT_LIST_COL_MINAZ, conf.minaz,
                            ROT_LIST_COL_MAXAZ, conf.maxaz,
                            ROT_LIST_COL_MINEL, conf.minel,
@@ -258,6 +263,7 @@ static GtkTreeModel *create_and_fill_model()
     liststore = gtk_list_store_new(ROT_LIST_COL_NUM, G_TYPE_STRING,     // name
                                    G_TYPE_STRING,       // host
                                    G_TYPE_INT,  // port
+                                   G_TYPE_INT,  // catnum
                                    G_TYPE_DOUBLE,       // Min Az
                                    G_TYPE_DOUBLE,       // Max Az
                                    G_TYPE_DOUBLE,       // Min El
@@ -291,6 +297,7 @@ static GtkTreeModel *create_and_fill_model()
                                        ROT_LIST_COL_NAME, conf.name,
                                        ROT_LIST_COL_HOST, conf.host,
                                        ROT_LIST_COL_PORT, conf.port,
+                                       ROT_LIST_COL_CATNUM, conf.catnum,
                                        ROT_LIST_COL_MINAZ, conf.minaz,
                                        ROT_LIST_COL_MAXAZ, conf.maxaz,
                                        ROT_LIST_COL_MINEL, conf.minel,
@@ -582,6 +589,7 @@ void sat_pref_rot_ok()
         .name = NULL,
         .host = NULL,
         .port = 4533,
+        .catnum = 0,
         .minaz = 0,
         .maxaz = 360,
         .minel = 0,
@@ -630,6 +638,7 @@ void sat_pref_rot_ok()
                                ROT_LIST_COL_NAME, &conf.name,
                                ROT_LIST_COL_HOST, &conf.host,
                                ROT_LIST_COL_PORT, &conf.port,
+                               ROT_LIST_COL_CATNUM, &conf.catnum,
                                ROT_LIST_COL_MINAZ, &conf.minaz,
                                ROT_LIST_COL_MAXAZ, &conf.maxaz,
                                ROT_LIST_COL_MINEL, &conf.minel,

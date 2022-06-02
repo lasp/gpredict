@@ -30,6 +30,7 @@
 #include "sat-cfg.h"
 #include "sat-log.h"
 #include "sat-pref-rot-editor.h"
+#include "gtk-sat-selector.h"
 
 
 extern GtkWidget *window;       /* dialog window defined in sat-pref.c */
@@ -37,6 +38,7 @@ static GtkWidget *dialog;       /* dialog window */
 static GtkWidget *name;         /* Configuration name */
 static GtkWidget *host;         /* host name or IP */
 static GtkWidget *port;         /* port number */
+static GtkWidget *satSel;       /* satellite selector */
 static GtkWidget *aztype;
 static GtkWidget *minaz;
 static GtkWidget *maxaz;
@@ -62,6 +64,12 @@ static void update_widgets(rotor_conf_t * conf)
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(port), 4533); /* hamlib default? */
 
     gtk_combo_box_set_active(GTK_COMBO_BOX(aztype), conf->aztype);
+
+    /* catnum */
+    if (conf->catnum != 0) {
+        gtk_sat_selector_set_selected_with_catnum(GTK_SAT_SELECTOR(
+                                                  satSel), conf->catnum);
+    }
 
     /* az and el limits */
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(minaz), conf->minaz);
@@ -223,6 +231,14 @@ static GtkWidget *create_editor_widgets(rotor_conf_t * conf)
                     gtk_separator_new(GTK_ORIENTATION_HORIZONTAL),
                     0, 3, 4, 1);
 
+    /* satSel */
+    label = gtk_label_new(_("Satellite"));
+    g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
+    gtk_grid_attach(GTK_GRID(table), label, 0, 3, 1, 1);
+    
+    satSel = gtk_sat_selector_new(0);
+    gtk_grid_attach(GTK_GRID(table), satSel, 1, 3, 2, 1);
+
     /* Az-type */
     label = gtk_label_new(_("Az type"));
     g_object_set(label, "xalign", 1.0, "yalign", 0.5, NULL);
@@ -322,6 +338,8 @@ static GtkWidget *create_editor_widgets(rotor_conf_t * conf)
 /* Called when the user clicks the OK button */
 static gboolean apply_changes(rotor_conf_t * conf)
 {
+    gchar *satname; 
+
     /* name */
     if (conf->name)
         g_free(conf->name);
@@ -336,6 +354,10 @@ static gboolean apply_changes(rotor_conf_t * conf)
 
     /* port */
     conf->port = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(port));
+    
+    /* satSel */
+    gtk_sat_selector_get_selected(GTK_SAT_SELECTOR(satSel), &(conf->catnum), 
+                                  &satname, NULL);
 
     /* az type */
     conf->aztype = gtk_combo_box_get_active(GTK_COMBO_BOX(aztype));

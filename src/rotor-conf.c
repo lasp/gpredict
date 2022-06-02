@@ -39,6 +39,7 @@
 #define KEY_PORT        "Port"
 #define KEY_CYCLE       "Cycle"
 #define KEY_AZTYPE      "AzType"
+#define KEY_CATNUM      "CATNUM"
 #define KEY_MINAZ       "MinAz"
 #define KEY_MAXAZ       "MaxAz"
 #define KEY_MINEL       "MinEl"
@@ -165,6 +166,25 @@ gboolean rotor_conf_read(rotor_conf_t * conf)
 
         conf->aztype = ROT_AZ_TYPE_360;
     }
+    
+    /* catalog number is optional */
+    if (g_key_file_has_key(cfg, GROUP, KEY_CATNUM, NULL))
+    {
+        conf->catnum = g_key_file_get_integer(cfg, GROUP, KEY_CATNUM, &error);
+        if (error != NULL)
+        {
+            sat_log_log(SAT_LOG_LEVEL_ERROR,
+                        _("%s: Error reading rotor conf from %s (%s)."),
+                        __func__, conf->name, error->message);
+            g_clear_error(&error);
+            g_key_file_free(cfg);
+            return FALSE;
+        }
+    }
+    else
+    {
+        conf->catnum = 0;
+    }
 
     conf->minaz = g_key_file_get_double(cfg, GROUP, KEY_MINAZ, &error);
     if (error != NULL)
@@ -244,6 +264,7 @@ void rotor_conf_save(rotor_conf_t * conf)
     g_key_file_set_string(cfg, GROUP, KEY_HOST, conf->host);
     g_key_file_set_integer(cfg, GROUP, KEY_PORT, conf->port);
     g_key_file_set_integer(cfg, GROUP, KEY_AZTYPE, conf->aztype);
+    g_key_file_set_integer(cfg, GROUP, KEY_CATNUM, conf->catnum);
     g_key_file_set_double(cfg, GROUP, KEY_MINAZ, conf->minaz);
     g_key_file_set_double(cfg, GROUP, KEY_MAXAZ, conf->maxaz);
     g_key_file_set_double(cfg, GROUP, KEY_MINEL, conf->minel);

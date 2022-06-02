@@ -44,6 +44,7 @@ typedef struct {
     gchar          *host;       /*!< hostname */
     gint            port;       /*!< port number */
     gint            cycle;      /*!< cycle period in msec */
+    gint            catnum;     /*!< catalog number of the selected satellite */
     rot_az_type_t   aztype;     /*!< Az type */
     gdouble         minaz;      /*!< Lower azimuth limit */
     gdouble         maxaz;      /*!< Upper azimuth limit */
