@@ -1320,6 +1320,20 @@ static GtkWidget *create_target_widgets(GtkRotCtrl * ctrl)
     ctrl->SatCnt = gtk_label_new("00:00:00");
     g_object_set(label, "xalign", 1.0f, "yalign", 0.5f, NULL);
     gtk_grid_attach(GTK_GRID(table), ctrl->SatCnt, 1, 3, 1, 1);
+    
+    /* Search for selected satellite, if one exists */
+    if (ctrl->conf->catnum != 0) {
+        n = g_slist_length(ctrl->sats);
+        for (i = 0; i < n; i++) {
+            sat = SAT(g_slist_nth_data(ctrl->sats, i));
+          
+            if (sat->tle.catnr == ctrl->conf->catnum) {
+                gtk_combo_box_set_active(GTK_COMBO_BOX(ctrl->SatSel), i);
+                
+                break;
+            }
+        }
+    }
 
     frame = gtk_frame_new(_("Target"));
     gtk_container_add(GTK_CONTAINER(frame), table);
@@ -1671,10 +1685,10 @@ GtkWidget      *gtk_rot_ctrl_new(GtkSatModule * module)
     gtk_container_set_border_width(GTK_CONTAINER(table), 0);
     gtk_grid_attach(GTK_GRID(table), create_az_widgets(rot_ctrl), 0, 0, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_el_widgets(rot_ctrl), 1, 0, 1, 1);
-    gtk_grid_attach(GTK_GRID(table), create_target_widgets(rot_ctrl),
-                    0, 1, 1, 1);
     gtk_grid_attach(GTK_GRID(table), create_conf_widgets(rot_ctrl),
                     1, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(table), create_target_widgets(rot_ctrl),
+                    0, 1, 1, 1);
 
     gtk_box_pack_start(GTK_BOX(rot_ctrl), create_plot_widget(rot_ctrl),
                        TRUE, TRUE, 5);
