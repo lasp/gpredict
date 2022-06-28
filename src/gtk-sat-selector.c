@@ -511,6 +511,7 @@ GtkWidget      *gtk_sat_selector_new(guint flags)
     gtk_container_add(GTK_CONTAINER(frame), GTK_SAT_SELECTOR(widget)->swin);
 
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_widget_set_size_request(GTK_WIDGET(vbox), 50, 200);
     gtk_box_pack_start(GTK_BOX(vbox), GTK_SAT_SELECTOR(widget)->search,
                        FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), GTK_SAT_SELECTOR(widget)->groups,
